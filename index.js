@@ -69,4 +69,8 @@ function render() {
 			process.stdout.write(colorize.black(`     │\n`));
 		}
 	}
+
+	// fourth ui line
+	let _line3 = `─────┴${"─".repeat(process.stdout.columns - 6)}`;
+	process.stdout.write(colorize.black(_line3));
 }
