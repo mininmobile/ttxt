@@ -48,16 +48,25 @@ function render() {
 	process.stdout.write("\x1b[0f");
 
 	// first ui line
-	let _line0 = `──────┬${"─".repeat(process.stdout.columns - 7)}`;
+	let _line0 = `─────┬${"─".repeat(process.stdout.columns - 6)}`;
 	process.stdout.write(colorize.black(_line0));
 
 	// second ui line
-	let _line1 = colorize.black(`      │`);
+	let _line1 = colorize.black(`     │`);
 	process.stdout.write(`${_line1} editing: ${"untitled"}\n`);
 
 	// third ui line
-	let _line2 = `──────┼${"─".repeat(process.stdout.columns - 7)}`;
+	let _line2 = `─────┼${"─".repeat(process.stdout.columns - 6)}`;
 	process.stdout.write(colorize.black(_line2));
 
-	process.stdout.write(data);
+	// code
+	let lines = data.split("\n");
+
+	for (let i = 0; i < process.stdout.rows - 4; i++) {
+		if (lines[i] != undefined) {
+			process.stdout.write(`${colorize.black(`  ${i + 1}  │`)} ${lines[i]}\n`);
+		} else {
+			process.stdout.write(colorize.black(`     │\n`));
+		}
+	}
 }
