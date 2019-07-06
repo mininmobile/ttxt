@@ -1,3 +1,5 @@
+const colorize = require("./src/colorize");
+
 if (!process.stdin.isTTY) {
 	throw new Error("stdin is not a tty");
 }
@@ -25,7 +27,7 @@ function onkey(key) {
 			process.exit();
 		} break;
 
-		case 0x7F: {
+		case 0x7F: { // BS
 			data = data.substring(0, data.length - 1);
 		} break;
 
@@ -45,5 +47,5 @@ function render() {
 	process.stdout.write('\x1b[2J');
 	process.stdout.write('\x1b[0f');
 
-	process.stdout.write(data);
+	process.stdout.write(colorize.magenta(data));
 }
