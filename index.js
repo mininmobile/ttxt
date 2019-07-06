@@ -7,10 +7,17 @@ if (!process.stdin.isTTY) {
 process.stdin.setRawMode(true);
 process.stdin.resume();
 
-let data = "";
-let cursor = 0;
+let cache = {
+	// ui lines
+	line0: undefined,
+	line1: undefined,
+	line2: undefined,
+	line3: undefined,
+}
 
-render();
+let data = "";
+
+render(true);
 
 process.stdin.on("data", (key) => {
 	for (let i = 0; i < Buffer.byteLength(key); i++) {
@@ -19,6 +26,8 @@ process.stdin.on("data", (key) => {
 });
 
 function onkey(key) {
+	let recache = false;
+
 	let hex = parseInt(key.toString("hex"), 16);
 
 	switch (hex) {
@@ -36,28 +45,37 @@ function onkey(key) {
 				data += key.toString();
 			} else if (hex == 0xD) {
 				data += "\n";
+				recache = true;
 			}
 		} break;
 	}
 
-	render();
+	render(recache);
 }
 
-function render() {
+function render(recache = false) {
 	process.stdout.write("\x1b[2J");
 	process.stdout.write("\x1b[0f");
 
-	// first ui line
-	let _line0 = `─────┬${"─".repeat(process.stdout.columns - 6)}`;
-	process.stdout.write(colorize.black(_line0));
+	if (recache) {
+		// first ui line
+		let _line0 = `─────┬${"─".repeat(process.stdout.columns - 6)}`;
+		cache.line0 = colorize.black(_line0);
 
-	// second ui line
-	let _line1 = colorize.black(`     │`);
-	process.stdout.write(`${_line1} editing: ${"untitled"}\n`);
+		// second ui line
+		let _line1 = colorize.black(`     │`);
+		cache.line1 = `${_line1} editing: ${"untitled"}\n`;
 
-	// third ui line
-	let _line2 = `─────┼${"─".repeat(process.stdout.columns - 6)}`;
-	process.stdout.write(colorize.black(_line2));
+		// third ui line
+		let _line2 = `─────┼${"─".repeat(process.stdout.columns - 6)}`;
+		cache.line2 = colorize.black(_line2);
+
+		// fourth ui line
+		let _line3 = `─────┴${"─".repeat(process.stdout.columns - 6)}`;
+		cache.line3 = colorize.black(_line3);
+	}
+
+	process.stdout.write(cache.line0 + cache.line1 + cache.line2);
 
 	// code
 	let lines = data.split("\n");
@@ -70,7 +88,5 @@ function render() {
 		}
 	}
 
-	// fourth ui line
-	let _line3 = `─────┴${"─".repeat(process.stdout.columns - 6)}`;
-	process.stdout.write(colorize.black(_line3));
+	process.stdout.write(cache.line3);
 }
