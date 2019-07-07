@@ -89,10 +89,16 @@ function render(recache = false) {
 
 	process.stdout.write(cache.line0 + cache.line1 + cache.line2);
 
+	let cursorx = 0;
+	let cursory = 0;
+
 	for (let i = 0; i < process.stdout.rows - 4; i++) {
 		if (lines[i] != undefined) {
 			let left = " ".repeat((lines.length.toString().length - (i + 1).toString().length) + 2);
 			process.stdout.write(`${colorize.black(`${left}${i + 1}  │`)} ${lines[i]}\n`);
+
+			cursorx = margin + 2 + lines[i].length;
+			cursory = i + 3;
 		} else {
 			process.stdout.write(colorize.black(`${" ".repeat(margin)}│\n`));
 		}
@@ -100,5 +106,5 @@ function render(recache = false) {
 
 	process.stdout.write(cache.line3);
 
-	process.stdout.cursorTo(0, 0);
+	process.stdout.cursorTo(cursorx, cursory);
 }
