@@ -30,6 +30,18 @@ render(true);
 				postgap = postgap.substring(1);
 				recache = true;
 			} break;
+
+			case "\x1b[D": { // LEFT ARROW
+				postgap = pregap[pregap.length - 1] + postgap;
+				pregap = pregap.substring(0, pregap.length - 1);
+				recache = true;
+			} break;
+
+			case "\x1b[C": { // RIGHT ARROW
+				pregap += postgap[0];
+				postgap = postgap.substring(1);
+				recache = true;
+			} break;
 	
 			default: {
 				for (let i = 0; i < Buffer.byteLength(key); i++) {
