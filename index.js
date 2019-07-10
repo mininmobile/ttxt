@@ -13,9 +13,11 @@ let cache = {
 	line1: undefined,
 	line2: undefined,
 	line3: undefined,
+	lineEmpty: undefined,
 }
 
-let data = "";
+let pregap = "lorem\nips";
+let postgap = "um\nmotherfucker";
 
 render(true);
 
@@ -43,17 +45,17 @@ function onkey(key) {
 		} break;
 
 		case 0x7F: { // BS
-			if (data.substring(data.length - 1) == "\n")
+			if (pregap.substring(pregap.length - 1) == "\n")
 				recache = true;
 
-			data = data.substring(0, data.length - 1);
+			pregap = pregap.substring(0, pregap.length - 1);
 		} break;
 
 		default: {
 			if ((hex >= 0x20 && hex <= 0x7e) || hex == 0x9) {
-				data += key.toString();
+				pregap += key.toString();
 			} else if (hex == 0xD) {
-				data += "\n";
+				pregap += "\n";
 				recache = true;
 			}
 		} break;
@@ -63,8 +65,14 @@ function onkey(key) {
 }
 
 function render(recache = false) {
-	let lines = data.split("\n");
-	let margin = 4 + lines.length.toString().length;
+	let prelines = pregap.toString().split("\n");
+	let postlines;
+
+	if (postgap != "")
+		postlines = postgap.toString().split("\n");
+
+	let slinecount = (prelines.length + postlines.length - 1).toString().length;
+	let margin = slinecount + 4;
 
 	process.stdout.write("\x1b[2J");
 	process.stdout.write("\x1b[0f");
@@ -85,6 +93,9 @@ function render(recache = false) {
 		// fourth ui line
 		let _line3 = `${"─".repeat(margin)}┴${"─".repeat(process.stdout.columns - margin - 1)}`;
 		cache.line3 = colorize.black(_line3);
+
+		// empty line
+		let lineEmpty = colorize.black(`${" ".repeat(margin)}│\n`);
 	}
 
 	process.stdout.write(cache.line0 + cache.line1 + cache.line2);
@@ -92,19 +103,31 @@ function render(recache = false) {
 	let cursorx = 0;
 	let cursory = 0;
 
-	for (let i = 0; i < process.stdout.rows - 4; i++) {
-		if (lines[i] != undefined) {
-			let left = " ".repeat((lines.length.toString().length - (i + 1).toString().length) + 2);
-			process.stdout.write(`${colorize.black(`${left}${i + 1}  │`)} ${lines[i]}\n`);
+	let height = process.stdout.rows - 4;
+	let start = prelines.length > height / 2 ?
+		prelines.length - Math.ceil(height / 2) : 0;
 
-			cursorx = margin + 2 + lines[i].length;
-			cursory = i + 3;
+	for (let i = start; i < start + height; i++) {
+		if (prelines[i] != undefined && i != prelines.length - 1) {
+			let left = " ".repeat((slinecount - (i + 1).toString().length) + 2);
+			process.stdout.write(`${colorize.black(`${left}${i + 1}  │`)} ${prelines[i]}\n`);
+		} else if (i == prelines.length - 1) {
+			let left = " ".repeat((slinecount - (i + 1).toString().length) + 2);
+			process.stdout.write(`${colorize.black(`${left}${i + 1}  │`)} ${prelines[i]}${postlines[i - (prelines.length - 1)]}\n`);
+
+			cursorx = prelines[i].length;
+			cursory = i - start;
+		} else if (postlines[i - (prelines.length - 1)] != undefined) {
+			let j = i - (prelines.length - 1);
+
+			let left = " ".repeat((postlines.length.toString().length - (j + 1).toString().length) + 2);
+			process.stdout.write(`${colorize.black(`${left}${i + 1}  │`)} ${postlines[j]}\n`);
 		} else {
-			process.stdout.write(colorize.black(`${" ".repeat(margin)}│\n`));
+			process.stdout.write(cache.lineEmpty);
 		}
 	}
 
 	process.stdout.write(cache.line3);
 
-	process.stdout.cursorTo(cursorx, cursory);
+	process.stdout.cursorTo(cursorx + margin + 2, cursory + 3);
 }
