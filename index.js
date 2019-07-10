@@ -23,9 +23,22 @@ render(true);
 
 { // event listeners
 	process.stdin.on("data", (key) => {
-		for (let i = 0; i < Buffer.byteLength(key); i++) {
-			onkey(key.slice(i, i + 1));
+		let recache = false;
+
+		switch (key.toString("ascii")) {
+			case "\x1b[3~": {
+				postgap = postgap.substring(1);
+				recache = true;
+			} break;
+	
+			default: {
+				for (let i = 0; i < Buffer.byteLength(key); i++) {
+					recache = onkey(key.slice(i, i + 1));
+				}
+			} break;
 		}
+
+		render(recache);
 	});
 
 	process.stdout.on("resize", () => {
@@ -40,7 +53,8 @@ function onkey(key) {
 
 	switch (hex) {
 		case 0x3: { // EOL
-			console.log("bye :c");
+			process.stdout.write("\x1b[2J");
+			process.stdout.write("\x1b[0f");
 			process.exit();
 		} break;
 
@@ -61,21 +75,15 @@ function onkey(key) {
 		} break;
 	}
 
-	render(recache);
+	return recache;
 }
 
 function render(recache = false) {
 	let prelines = pregap.toString().split("\n");
-	let postlines;
-
-	if (postgap != "")
-		postlines = postgap.toString().split("\n");
+	let postlines = postgap.toString().split("\n");
 
 	let slinecount = (prelines.length + postlines.length - 1).toString().length;
 	let margin = slinecount + 4;
-
-	process.stdout.write("\x1b[2J");
-	process.stdout.write("\x1b[0f");
 
 	if (recache) {
 		// first ui line
@@ -95,8 +103,11 @@ function render(recache = false) {
 		cache.line3 = colorize.black(_line3);
 
 		// empty line
-		let lineEmpty = colorize.black(`${" ".repeat(margin)}│\n`);
+		cache.lineEmpty = colorize.black(`${" ".repeat(margin)}│\n`);
 	}
+
+	process.stdout.write("\x1b[2J");
+	process.stdout.write("\x1b[0f");
 
 	process.stdout.write(cache.line0 + cache.line1 + cache.line2);
 
