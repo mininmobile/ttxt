@@ -16,8 +16,8 @@ let cache = {
 	lineEmpty: undefined,
 }
 
-let pregap = "lorem\nips";
-let postgap = "um\nmotherfucker";
+let pregap = "";
+let postgap = "";
 
 render(true);
 
