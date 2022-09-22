@@ -1,2 +1,2 @@
 # ttxt
-A usable terminal text/code editor.
+moved to https://codeberg.org/zvava/ttxt
